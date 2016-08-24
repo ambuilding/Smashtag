@@ -32,13 +32,8 @@ class TweetTableViewCell: UITableViewCell {
         
         // load new information from our tweet (if any)
         if let tweet = self.tweet {
-            tweetTextLabel?.text = tweet.text
-            if tweetTextLabel?.text != nil {
-                for _ in tweet.media {
-                    tweetTextLabel.text! += " 📷"
-                }
-            }
             
+            setBodyText(tweet)
             tweetScreenNameLabel?.text = "\(tweet.user)" // tweet.user.description
             
             if let profileImageURL = tweet.user.profileImageURL {
@@ -50,7 +45,6 @@ class TweetTableViewCell: UITableViewCell {
                         }
                     }
                 }
-                
             }
             
             let formatter = NSDateFormatter()
@@ -61,8 +55,44 @@ class TweetTableViewCell: UITableViewCell {
             }
             
             tweetCreatedLabel?.text = formatter.stringFromDate(tweet.created)
+        } 
+    }
+    
+    func setBodyText(tweet: Twitter.Tweet) {
+        
+        var text = tweet.text
+        tweetTextLabel?.text = text
+        
+        if tweetTextLabel?.text != nil {
+            for _ in tweet.media {
+                text += " 📷"
+            }
         }
+        
+        let tweetText = NSMutableAttributedString(string: text)
+        
+        if !tweet.hashtags.isEmpty {
+            for hashtag in tweet.hashtags {
+                tweetText.addAttribute(NSForegroundColorAttributeName, value: UIColor.blueColor(), range: hashtag.nsrange)
+            }
+        }
+        
+        if !tweet.urls.isEmpty {
+            for url in tweet.urls {
+                tweetText.addAttribute(NSForegroundColorAttributeName, value: UIColor.orangeColor(), range: url.nsrange)
+            }
+        }
+        
+        if !tweet.userMentions.isEmpty {
+            for userMention in tweet.userMentions {
+                tweetText.addAttribute(NSForegroundColorAttributeName, value: UIColor.redColor(), range: userMention.nsrange)
+            }
+        }
+        
+        tweetTextLabel?.attributedText = tweetText
         
     }
     
 }
+
+

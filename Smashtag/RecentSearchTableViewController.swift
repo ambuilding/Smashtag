@@ -10,92 +10,47 @@ import UIKit
 
 class RecentSearchTableViewController: UITableViewController {
     
-    private let userDefaults = UserDefaults()
-    private var recentSearches: [String] {
-        return userDefaults.fetchSearchTerms()
-    }
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-
-        title = "Recent Searches"
-    }
+    // MARK: - life cycle
     
     override func viewWillAppear(animated: Bool) {
-        super.viewWillAppear(true)
+        super.viewWillAppear(animated)
         tableView.reloadData()
-    }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-    }
-
-    private struct Storyboard {
-        static let RecentSearchCell = "RecentSearch"
-        // TableViewReusableCellidentifier
-        static let SearchTweetsSegueIdentifier = "SearchTweets"
-        //SegueIdentifier
     }
 
     // MARK: - Table view data source
 
+    private struct Storyboard {
+        static let RecentSearchCellIdentifier = "RecentSearch"
+        static let SearchTweetsSegue = "SearchTweets"
+    }
+    
     override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
         return 1
     }
 
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return recentSearches.count
+        return RecentSearches().recentSearches.count
     }
 
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier(Storyboard.RecentSearchCell, forIndexPath: indexPath)
+        let cell = tableView.dequeueReusableCellWithIdentifier(Storyboard.RecentSearchCellIdentifier, forIndexPath: indexPath)
 
-        cell.textLabel?.text = recentSearches[indexPath.row]
+        cell.textLabel?.text = RecentSearches().recentSearches[indexPath.row]
         return cell
     }
     
+    // Override to support conditional editing of the table view.
+//    override func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
+//        // Return false if you do not want the specified item to be editable.
+//        return true
+//    }
+    
     override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
         if editingStyle == .Delete {
-            userDefaults.deleteSearchTerm(removeAtIndexPath: indexPath)
+            RecentSearches().removeRecentSearchAtIndex(indexPath.row)
             tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
         }
     }
-
-    /*
-    // Override to support conditional editing of the table view.
-    override func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
-        // Return false if you do not want the specified item to be editable.
-        return true
-    }
-    */
-
-    /*
-    // Override to support editing the table view.
-    override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
-        if editingStyle == .Delete {
-            // Delete the row from the data source
-            tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
-        } else if editingStyle == .Insert {
-            // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-        }    
-    }
-    */
-
-    /*
-    // Override to support rearranging the table view.
-    override func tableView(tableView: UITableView, moveRowAtIndexPath fromIndexPath: NSIndexPath, toIndexPath: NSIndexPath) {
-
-    }
-    */
-
-    /*
-    // Override to support conditional rearranging of the table view.
-    override func tableView(tableView: UITableView, canMoveRowAtIndexPath indexPath: NSIndexPath) -> Bool {
-        // Return false if you do not want the item to be re-orderable.
-        return true
-    }
-    */
-
     
     // MARK: - Navigation
 
@@ -104,11 +59,10 @@ class RecentSearchTableViewController: UITableViewController {
     }
 
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
         if let identifier = segue.identifier {
+            
             switch identifier {
-            case Storyboard.SearchTweetsSegueIdentifier:
+            case Storyboard.SearchTweetsSegue:
                 if let cell = sender as? UITableViewCell, let text = cell.textLabel?.text {
                     if let tvc = segue.destinationViewController as? TweetTableViewController {
                         tvc.searchText = text
@@ -120,5 +74,4 @@ class RecentSearchTableViewController: UITableViewController {
         }
     }
     
-
 }

@@ -19,6 +19,7 @@ class ImageViewController: UIViewController, UIScrollViewDelegate {
     }
     
     private var imageView = UIImageView()
+    
     private var image: UIImage? {
         get {
             return imageView.image
@@ -35,6 +36,7 @@ class ImageViewController: UIViewController, UIScrollViewDelegate {
     var imageURL: NSURL? {
         didSet {
             image = nil
+            
             if view.window != nil {
                 fetchImage()
             }
@@ -44,21 +46,23 @@ class ImageViewController: UIViewController, UIScrollViewDelegate {
     var aspectRatio: Double?
     
     private func fetchImage() {
-        if let imageURL = imageURL {
+        if let url = imageURL {
             spinner?.startAnimating()
-            let qos = Int(QOS_CLASS_USER_INITIATED.rawValue)
-            dispatch_async(dispatch_get_global_queue(qos, 0)) {
-                if let imageData = NSData(contentsOfURL: imageURL) {
-                    dispatch_async(dispatch_get_main_queue()) {
-                        if imageURL == self.imageURL {
+           
+            dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)) {
+                let contentsOfURL = NSData(contentsOfURL: url)
+                dispatch_async(dispatch_get_main_queue()) {
+                    if url == self.imageURL {
+                        if let imageData = contentsOfURL {
                             self.image = UIImage(data: imageData)
                         } else {
-                            self.image = nil
+                            self.spinner?.stopAnimating()
                         }
+                    } else {
+                        self.image = nil
                     }
                 }
             }
-            
         }
     }
     
@@ -103,6 +107,8 @@ class ImageViewController: UIViewController, UIScrollViewDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         scrollView.addSubview(imageView)
+        
+        setupGestureRecognizer()
     }
 
     override func viewWillAppear(animated: Bool) {
@@ -127,15 +133,36 @@ class ImageViewController: UIViewController, UIScrollViewDelegate {
             self.scrollView.setContentOffset(self.scrollViewcontentOffsetSize, animated: false)
         }
     }
-
- /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
+    
+    // be centered on the screen
+    func scrollViewDidZoom(scrollView: UIScrollView) {
+        let imageViewSize = imageView.frame.size
+        let scrollViewSize = scrollView.bounds.size
+        
+        let verticalPadding = imageViewSize.height < scrollViewSize.height ? (scrollViewSize.height - imageViewSize.height) / 2 : 0
+        let horizontalPadding = imageViewSize.width < scrollViewSize.width ? (scrollViewSize.width - imageViewSize.width) / 2 : 0
+        
+        scrollView.contentInset = UIEdgeInsets(top: verticalPadding, left: horizontalPadding, bottom: verticalPadding, right: horizontalPadding)
     }
-    */
+    
+    /* implement the double-tap to zoom up to maximum if it’s currently at the minimum zoom scale, otherwise the double-tap will zoom it down to the minimum,
+     */
+    private func setupGestureRecognizer() {
+        let doubleTap = UITapGestureRecognizer(
+            target: self,
+            action: #selector(ImageViewController.handleDoubleTap(_:))
+        )
+        doubleTap.numberOfTapsRequired = 2
+        scrollView.addGestureRecognizer(doubleTap)
+    }
+    
+    func handleDoubleTap(recognizer: UITapGestureRecognizer) {
+        
+        if (scrollView.zoomScale > scrollView.minimumZoomScale) {
+            scrollView.setZoomScale(scrollView.minimumZoomScale, animated: true)
+        } else {
+            scrollView.setZoomScale(scrollView.maximumZoomScale, animated: true)
+        }
+    }
 
 }

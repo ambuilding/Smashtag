@@ -11,40 +11,35 @@ import Twitter
 
 class MentionImageTableViewCell: UITableViewCell {
     
-    var mediaItem: Twitter.MediaItem? {
+    // MARK: - Public API
+
+    var imageURL: NSURL? {
         didSet {
             updateUI()
         }
     }
     
-    @IBOutlet weak var mentionImageView: UIImageView!
-    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
-    private var mentionImage: UIImage? {
-        didSet {
-            mentionImageView.image = mentionImage
-            activityIndicator?.stopAnimating()
-        }
-    }
+    @IBOutlet weak var mentionImageView: UIImageView!
+    @IBOutlet weak var spinner: UIActivityIndicatorView!
+    
     
     private func updateUI() {
-        mentionImageView?.image = nil
         
-        if let mediaItem = mediaItem {
-            let qos = Int(QOS_CLASS_USER_INITIATED.rawValue)
-            activityIndicator.startAnimating()
-            dispatch_async(dispatch_get_global_queue(qos, 0)) {
-                if let imageData = NSData(contentsOfURL: mediaItem.url) {
-                    dispatch_async(dispatch_get_main_queue()) {
-                        if mediaItem.url == self.mediaItem?.url {
-                            self.mentionImage = UIImage(data: imageData)
+        if let url = imageURL {
+            spinner?.startAnimating()
+            
+            dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)) {
+                let contentsOfURL = NSData(contentsOfURL: url)
+                dispatch_async(dispatch_get_main_queue()) {
+                    if url == self.imageURL {
+                        if let imageData = contentsOfURL{
+                            self.mentionImageView?.image = UIImage(data: imageData)
                         }
                     }
-                }
+                    self.spinner?.stopAnimating()
+                }   
             }
-            
         }
-        
     }
-
 }

@@ -11,11 +11,13 @@ import CoreData
 
 class CoreDataTableViewController: UITableViewController, NSFetchedResultsControllerDelegate {
 
+    // Medel
+    
     var fetchedResultsController: NSFetchedResultsController? {
         
         didSet {
             do {
-                if let frc = fetchedResultsController {
+                if let frc = fetchedResultsController {  //optional
                     frc.delegate = self
                     try frc.performFetch()
                 }
